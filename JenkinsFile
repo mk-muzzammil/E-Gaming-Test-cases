@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        APP_REPO =  'https://github.com/mk-muzzammil/Gaming-Ecomerce-Website-MERN-Project.git'
-        TEST_REPO =  'https://github.com/mk-muzzammil/E-Gaming-Test-cases.git'
+        APP_REPO = 'https://github.com/mk-muzzammil/Gaming-Ecomerce-Website-MERN-Project.git'
+        TEST_REPO = 'https://github.com/mk-muzzammil/E-Gaming-Test-cases.git'
         APP_IMAGE = 'gaming-ecommerce-app'
         TEST_IMAGE = 'gaming-ecommerce-tests'
     }
@@ -67,7 +67,7 @@ pipeline {
 
                         # Wait for app to start
                         echo "⏳ Waiting for app to start..."
-                        sleep 10
+                        sleep 30
                     '''
                 }
             }
@@ -87,10 +87,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Application and test pipeline completed successfully.'
+            echo "✅ Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
         }
         failure {
-            echo '❌ Pipeline failed.'
+            echo "❌ Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
         }
     }
 }
