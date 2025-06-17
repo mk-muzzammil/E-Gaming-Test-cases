@@ -4,8 +4,8 @@ pipeline {
     environment {
         APP_REPO = 'https://github.com/mk-muzzammil/Gaming-Ecomerce-Website-MERN-Project.git'
         TEST_REPO = 'https://github.com/mk-muzzammil/E-Gaming-Test-cases.git'
-        APP_IMAGE = 'gaming-ecommerce-app'
-        TEST_IMAGE = 'gaming-ecommerce-tests'
+        APP_IMAGE = 'ecomerce-app'
+        TEST_IMAGE = 'ecomerce-app-tests'
     }
 
     stages {
@@ -50,9 +50,9 @@ pipeline {
                 script {
                     sh '''
                         # Stop and remove existing container
-                        if docker ps -q --filter "name=gaming-app"; then
-                            docker stop gaming-app || true
-                            docker rm gaming-app || true
+                        if docker ps -q --filter "name=ecomerce-app"; then
+                            docker stop ecomerce-app || true
+                            docker rm ecomerce-app || true
                         fi
 
                         # Free port 3000 if used
