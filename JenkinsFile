@@ -1,96 +1,166 @@
 pipeline {
     agent any
-
     environment {
         APP_REPO = 'https://github.com/mk-muzzammil/Gaming-Ecomerce-Website-MERN-Project.git'
         TEST_REPO = 'https://github.com/mk-muzzammil/E-Gaming-Test-cases.git'
         APP_IMAGE = 'ecomerce-app'
         TEST_IMAGE = 'ecomerce-app-tests'
+        APP_CONTAINER = 'ecomerce-app-container'
     }
-
     stages {
+        stage('Cleanup Previous Builds') {
+            steps {
+                script {
+                    sh '''
+                        echo "🧹 Cleaning up previous containers and images..."
+                        # Stop and remove any existing containers
+                        docker stop ${APP_CONTAINER} || true
+                        docker rm ${APP_CONTAINER} || true
+                        
+                        # Remove any containers using port 3000
+                        CONTAINERS_ON_PORT=$(docker ps -q --filter "publish=3000")
+                        if [ ! -z "$CONTAINERS_ON_PORT" ]; then
+                            echo "Stopping containers using port 3000..."
+                            docker stop $CONTAINERS_ON_PORT || true
+                            docker rm $CONTAINERS_ON_PORT || true
+                        fi
+                        
+                        # Optional: Clean up old images to save space
+                        docker image prune -f || true
+                    '''
+                }
+            }
+        }
+        
         stage('Checkout Application') {
             steps {
                 dir('app') {
                     git branch: 'main', url: "${APP_REPO}"
+                    // Debug: List files to confirm Dockerfile is present
+                    sh 'echo "📁 Files in app directory:" && ls -la'
                 }
             }
         }
-
+        
         stage('Checkout Tests') {
             steps {
                 dir('tests') {
                     git branch: 'main', url: "${TEST_REPO}"
+                    sh 'echo "📁 Files in tests directory:" && ls -la'
                 }
             }
         }
-
+        
         stage('Build Application Docker Image') {
             steps {
                 dir('app') {
                     script {
-                        sh 'docker build -t ${APP_IMAGE} .'
+                        sh '''
+                            echo "🔨 Building application Docker image..."
+                            docker build -t ${APP_IMAGE} .
+                            echo "✅ Application image built successfully"
+                        '''
                     }
                 }
             }
         }
-
+        
         stage('Build Test Docker Image') {
             steps {
                 dir('tests') {
                     script {
-                        sh 'docker build -t ${TEST_IMAGE} .'
+                        sh '''
+                            echo "🔨 Building test Docker image..."
+                            docker build -t ${TEST_IMAGE} .
+                            echo "✅ Test image built successfully"
+                        '''
                     }
                 }
             }
         }
-
+        
         stage('Start Application Container') {
             steps {
                 script {
                     sh '''
-                        # Stop and remove existing container
-                        if docker ps -q --filter "name=ecomerce-app"; then
-                            docker stop ecomerce-app || true
-                            docker rm ecomerce-app || true
+                        echo "🚀 Starting application container..."
+                        docker run -d --name ${APP_CONTAINER} -p 3000:3000 ${APP_IMAGE}
+                        
+                        echo "⏳ Waiting for application to start..."
+                        sleep 15
+                        
+                        # Check if container is running
+                        if docker ps | grep -q ${APP_CONTAINER}; then
+                            echo "✅ Application container is running"
+                            docker ps | grep ${APP_CONTAINER}
+                        else
+                            echo "❌ Application container failed to start"
+                            docker logs ${APP_CONTAINER}
+                            exit 1
                         fi
-
-                        # Free port 3000 if used
-                        USED_CONTAINER=$(docker ps --filter "publish=3000" -q)
-                        if [ ! -z "$USED_CONTAINER" ]; then
-                            docker stop $USED_CONTAINER || true
-                            docker rm $USED_CONTAINER || true
-                        fi
-
-                        # Start application container
-                        docker run -d --name gaming-app -p 3000:3000 ${APP_IMAGE}
-
-                        # Wait for app to start
-                        echo "⏳ Waiting for app to start..."
-                        sleep 10
+                        
+                        # Test if application is responding
+                        echo "🔍 Testing application health..."
+                        for i in {1..10}; do
+                            if curl -f http://localhost:3000 > /dev/null 2>&1; then
+                                echo "✅ Application is responding on port 3000"
+                                break
+                            else
+                                echo "⏳ Attempt $i: Application not ready yet, waiting..."
+                                sleep 3
+                            fi
+                            if [ $i -eq 10 ]; then
+                                echo "❌ Application failed to respond after 30 seconds"
+                                docker logs ${APP_CONTAINER}
+                                exit 1
+                            fi
+                        done
                     '''
                 }
             }
         }
-
+        
         stage('Run Tests Against App') {
             steps {
                 script {
                     sh '''
-                        echo "🚀 Running tests..."
-                        docker run --rm --network host ${TEST_IMAGE}
+                        echo "🧪 Running tests against the application..."
+                        # Run tests with proper network access to the application
+                        docker run --rm --network host \
+                            -e APP_URL=http://localhost:3000 \
+                            ${TEST_IMAGE}
+                        echo "✅ Tests completed successfully"
                     '''
                 }
             }
         }
     }
-
+    
     post {
+        always {
+            script {
+                sh '''
+                    echo "🧹 Cleaning up test containers..."
+                    # Stop and remove the application container
+                    docker stop ${APP_CONTAINER} || true
+                    docker rm ${APP_CONTAINER} || true
+                '''
+            }
+        }
         success {
-            echo '✅ Application and test pipeline completed successfully.'
+            echo '✅ Application and test pipeline completed successfully!'
         }
         failure {
-            echo '❌ Pipeline failed.'
+            script {
+                sh '''
+                    echo "❌ Pipeline failed. Collecting logs for debugging..."
+                    if docker ps -a | grep -q ${APP_CONTAINER}; then
+                        echo "📋 Application container logs:"
+                        docker logs ${APP_CONTAINER} || true
+                    fi
+                '''
+            }
+            echo '❌ Pipeline failed. Check logs above for details.'
         }
     }
 }
