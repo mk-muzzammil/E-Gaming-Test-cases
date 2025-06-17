@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        APP_REPO = 'https://github.com/mk-muzzammil/Gaming-Ecomerce-Website-MERN-Project.git'
+        APP_REPO = 'https://github.com/thatisawais/gaming-store.git''
         TEST_REPO = 'https://github.com/mk-muzzammil/E-Gaming-Test-cases.git'
         APP_IMAGE = 'gaming-ecommerce-app'
         TEST_IMAGE = 'gaming-ecommerce-tests'
@@ -29,7 +29,7 @@ pipeline {
             steps {
                 dir('app') {
                     script {
-                        sh 'docker build -t ${APP_IMAGE} .'
+                        sh 'docker build -f Dockerfile -t ${APP_IMAGE} .'
                     }
                 }
             }
@@ -39,7 +39,7 @@ pipeline {
             steps {
                 dir('tests') {
                     script {
-                        sh 'docker build -t ${TEST_IMAGE} .'
+                        sh 'docker build -f Dockerfile -t ${TEST_IMAGE} .'
                     }
                 }
             }
