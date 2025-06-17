@@ -7,10 +7,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# Test case
 class GamingEcommerceTests(unittest.TestCase):
     BASE_URL = 'http://54.176.235.60:3000/'
-    TIMEOUT = 120  # seconds
+    TIMEOUT = 120
 
     @classmethod
     def setUpClass(cls):
@@ -23,7 +22,7 @@ class GamingEcommerceTests(unittest.TestCase):
         chrome_options.add_argument('--window-size=1920,1080')
 
         cls.driver = webdriver.Chrome(options=chrome_options)
-        cls.wait = WebDriverWait(cls.driver, 20)  # Increased timeout
+        cls.wait = WebDriverWait(cls.driver, 20)
 
         print('🚀 Waiting for application to be ready...')
         cls.wait_for_app_ready()
@@ -101,8 +100,8 @@ class GamingEcommerceTests(unittest.TestCase):
 
     def test_application_running_on_server(self):
         self.driver.get(self.BASE_URL)
-        self.wait.until(EC.url_contains('54.193.129.133'))
-        self.assertIn('54.193.129.133', self.driver.current_url)
+        self.wait.until(EC.url_contains('54.176.235.60'))  # FIXED: match BASE_URL
+        self.assertIn('54.176.235.60', self.driver.current_url)
 
     def test_footer_presence_on_home_page(self):
         self.driver.get(self.BASE_URL)
