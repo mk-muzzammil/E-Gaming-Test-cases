@@ -29,7 +29,7 @@ pipeline {
             steps {
                 dir('app') {
                     script {
-                        sh 'docker build -f Dockerfile -t ${APP_IMAGE} .'
+                        sh 'docker build -t ${APP_IMAGE} .'
                     }
                 }
             }
@@ -39,7 +39,7 @@ pipeline {
             steps {
                 dir('tests') {
                     script {
-                        sh 'docker build -f Dockerfile -t ${TEST_IMAGE} .'
+                        sh 'docker build -t ${TEST_IMAGE} .'
                     }
                 }
             }
@@ -67,7 +67,7 @@ pipeline {
 
                         # Wait for app to start
                         echo "⏳ Waiting for app to start..."
-                        sleep 30
+                        sleep 10
                     '''
                 }
             }
@@ -87,10 +87,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            echo '✅ Application and test pipeline completed successfully.'
         }
         failure {
-            echo "❌ Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            echo '❌ Pipeline failed.'
         }
     }
 }
