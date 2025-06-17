@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        APP_REPO = 'https://github.com/thatisawais/gaming-store.git'
-        TEST_REPO = 'https://github.com/thatisawais/gaming-store-test-cases.git'
+        APP_REPO =  'https://github.com/mk-muzzammil/Gaming-Ecomerce-Website-MERN-Project.git'
+        TEST_REPO =  'https://github.com/mk-muzzammil/E-Gaming-Test-cases.git'
         APP_IMAGE = 'gaming-ecommerce-app'
         TEST_IMAGE = 'gaming-ecommerce-tests'
     }
@@ -67,7 +67,7 @@ pipeline {
 
                         # Wait for app to start
                         echo "⏳ Waiting for app to start..."
-                        sleep 30
+                        sleep 10
                     '''
                 }
             }
@@ -87,27 +87,10 @@ pipeline {
 
     post {
         success {
-            script {
-                def authorEmail = sh(script: "git --no-pager show -s --format='%ae' HEAD", returnStdout: true).trim()
-                emailext (
-                    subject: "✅ Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                    body: "The build was successful.\n\nCheck details: ${env.BUILD_URL}",
-                    to: authorEmail,
-                    mimeType: 'text/plain'
-                )
-            }
+            echo '✅ Application and test pipeline completed successfully.'
         }
         failure {
-            script {
-                def authorEmail = sh(script: "git --no-pager show -s --format='%ae' HEAD", returnStdout: true).trim()
-                emailext (
-                    subject: "❌ Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                    body: "The build has failed.\n\nCheck logs and details: ${env.BUILD_URL}",
-                    to: authorEmail,
-                    attachLog: true,
-                    mimeType: 'text/plain'
-                )
-            }
+            echo '❌ Pipeline failed.'
         }
     }
 }
