@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # Test case
 class GamingEcommerceTests(unittest.TestCase):
-    BASE_URL = 'http://54.193.129.133:3000/'
+    BASE_URL = 'http://54.176.235.60:3000/'
     TIMEOUT = 120  # seconds
 
     @classmethod
